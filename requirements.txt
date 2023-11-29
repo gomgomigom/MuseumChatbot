@@ -1,0 +1,12 @@
+langchain
+openai
+streamlit
+webdriver_manager==4.0.1
+selenium
+beautifulsoup4
+tqdm
+pandas
+transformers
+tiktoken
+dotenv
+jsonlines
