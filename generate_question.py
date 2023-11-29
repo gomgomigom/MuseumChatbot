@@ -9,7 +9,7 @@ import json
 import openai
 
 class GenerateQuestion :
-    def __init__(self, jsonl_input_path: str = "./files/title_desc_passage.jsonl", jsonl_output_path: str = "./files/qa_gpt_dataset.jsonl", title: str = "title", description: str = "description") :
+    def __init__(self, jsonl_input_path: str = "./files/title_desc_passage2.jsonl", jsonl_output_path: str = "./files/qa_gpt_dataset2.jsonl", title: str = "title", description: str = "description") :
         '''
             Args:
                 jsonl_input_path : 질문을 생성할 기반 문서 (JSONL) 파일의 경로, 430 토큰 미만으로 Split 할 것을 권장.
@@ -40,8 +40,8 @@ class GenerateQuestion :
         # i=0
         dataset = []
         with jsonlines.open(self.jsonl_input_path) as file:
-            try :
-                for data in tqdm(file.iter()):
+            for data in tqdm(file.iter()):
+                try :
                     title = data[self.title]
                     # print(f'load data.. title:{title}')
                     description = data[self.description]
@@ -89,9 +89,11 @@ class GenerateQuestion :
                     # if i == 10 :
                         # break
                     # i += 1
-            except Exception as ee:
-                dataset.append({'title':'실패', 'context':'실패', 'question':'실패'})
-            
+                except Exception as ee:
+                    dataset.append({'title':'실패', 'context':'실패', 'question':'실패'})
+                    print(f'TimeOut, 전체 실패. 다음 Passage를 처리합니다. --> {ee}')
+                    continue
+
             # 일단 csv로도 저장
             df = pd.DataFrame(dataset)
             df.to_csv("./files/qa_gpt_df.csv", index=False, encoding="utf-8-sig")
