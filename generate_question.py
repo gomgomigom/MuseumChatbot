@@ -9,7 +9,7 @@ import json
 import openai
 
 class GenerateQuestion :
-    def __init__(self, jsonl_input_path: str = "./files/title_desc_passage2.jsonl", jsonl_output_path: str = "./files/qa_gpt_dataset2.jsonl", title: str = "title", description: str = "description") :
+    def __init__(self, jsonl_input_path: str = "./files/title_desc_passage.jsonl", jsonl_output_path: str = "./files/qa_gpt_dataset.jsonl", title: str = "title", description: str = "description") :
         '''
             Args:
                 jsonl_input_path : 질문을 생성할 기반 문서 (JSONL) 파일의 경로, 430 토큰 미만으로 Split 할 것을 권장.
@@ -89,9 +89,9 @@ class GenerateQuestion :
                     # if i == 10 :
                         # break
                     # i += 1
-                except Exception as ee:
+                except Exception as timeout:
                     dataset.append({'title':'실패', 'context':'실패', 'question':'실패'})
-                    print(f'TimeOut, 전체 실패. 다음 Passage를 처리합니다. --> {ee}')
+                    print(f'TimeOut, 전체 실패. 다음 Passage를 처리합니다. --> {timeout}')
                     continue
 
             # 일단 csv로도 저장
@@ -108,4 +108,4 @@ if __name__ == "__main__" :
     gq = GenerateQuestion()
     dataset = gq.generate_question()
     gq.save_data(dataset)
-    print('끝.')
+    print('생성 완료.')
