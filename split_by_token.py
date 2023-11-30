@@ -3,7 +3,7 @@ from transformers import BertTokenizerFast
 import tiktoken
 import json
 
-class Preprocessing :   
+class TokenSplitter :   
     def __init__(self, jsonl_input_path: str = "./files/museum_passage.jsonl", jsonl_output_path: str = "./files/passage_split.jsonl", encoding_name: str = "klue/bert-base") :
         '''
             Args:
@@ -134,9 +134,6 @@ class Preprocessing :
                 print(f'"{line["title"]}" 하는 중.. Token Length : {tokens.size(1)}')
         print(len_list)
         return tokens.size(1)
-
-    # 수정 예정
-    # def combine_era_info(self, data):
 
     def process(self):
         if self.encoding_name == "klue/bert-base" :
