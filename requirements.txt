@@ -10,3 +10,4 @@ transformers
 tiktoken
 dotenv
 jsonlines
+flatten_json
