@@ -4,6 +4,7 @@ from vectordb import InMemoryExactNNVectorDB
 from .customdataset import CustomDataset
 from tqdm.auto import tqdm
 from .doc import ToyDoc
+from torch.utils.data import DataLoader
 
 
 class Llmvdb:
@@ -27,20 +28,48 @@ class Llmvdb:
 
         self.db = InMemoryExactNNVectorDB[ToyDoc](workspace=self.workspace)
 
-    def initialize_db(self):
-        dataset = CustomDataset(self.file_path).documents_data
-        doc_list = [
-            ToyDoc(
-                text=data["text"],
-                context_embedding=self.embedding.get_embedding(data["text"]),
-                question=data["question"],
-                # question_embedding=self.embedding.get_embedding(data["question"]),
-                tit_id=data["tit_id"],
-                ctx_id=data["ctx_id"],
+    def custom_collate_fn(self, batch):
+        texts = [item["text"] for item in batch]
+        questions = [item["question"] for item in batch]
+        ctx_ids = [item["ctx_id"] for item in batch]
+        tit_ids = [item["tit_id"] for item in batch]
+        batched_data = []
+        for i in range(len(batch)):
+            batched_data.append(
+                {
+                    "text": texts[i],
+                    "question": questions[i],
+                    "ctx_id": ctx_ids[i],
+                    "tit_id": tit_ids[i],
+                }
             )
-            for data in tqdm(dataset, desc="Processing dataset embedding")
-            if data["text"].strip() != ""
-        ]
+        return batched_data
+
+    def initialize_db(self):
+        dataset = CustomDataset(self.file_path)
+        dataloader = DataLoader(
+            dataset, batch_size=32, shuffle=False, collate_fn=self.custom_collate_fn
+        )
+        doc_list = []
+
+        for batch in tqdm(dataloader, desc="Processing dataset embedding"):
+            texts = [data["text"] for data in batch if data["text"].strip() != ""]
+            questions = [data["text"] for data in batch if data["text"].strip() != ""]
+            context_embeddings = self.embedding.get_embedding(texts)
+            question_embeddings = self.embedding.get_embedding(questions)
+
+            for j, data in enumerate(batch):
+                if data["text"].strip() != "":
+                    doc_list.append(
+                        ToyDoc(
+                            text=data["text"],
+                            context_embedding=context_embeddings[j],
+                            question=data["question"],
+                            question_embedding=question_embeddings[j],
+                            tit_id=data["tit_id"],
+                            ctx_id=data["ctx_id"],
+                        )
+                    )
 
         self.db.index(inputs=DocList[ToyDoc](doc_list))
         self.db.persist()
@@ -99,7 +128,7 @@ class Llmvdb:
         self.embedding = new_embedding
 
     def evaluate_model(self):
-        dataset = CustomDataset(self.file_path).documents_data
+        dataset = CustomDataset(self.file_path)
         correct_count = 0
         total_queries = len(dataset) * 3
 
