@@ -7,6 +7,11 @@ from tqdm import tqdm
 from torch.utils.data import DataLoader
 from data import kdpr_dataset
 import faiss
+import argparse
+from model import kdpr
+import os
+from attrdict import AttrDict
+import json
 
 class inference(object):
     def __init__(self, args, model, save_dir=None):
@@ -14,7 +19,10 @@ class inference(object):
         # self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.device = torch.device("cuda:" + str(self.args.gpu_ids[0]) if torch.cuda.is_available() else "cpu")
         self.model = model
-        self.model.load_state_dict(torch.load(self.args.save_dirpath + self.args.load_pthpath + 'kmrc_mrc' + '.pth'))
+        # self.model.load_state_dict(torch.load(self.args.save_dirpath + self.args.load_pthpath + 'kmrc_mrc' + '.pth'))
+        self.model.load_state_dict(torch.load('/USER/sungmin/MuseumChatbot/KorDPR_NLP/model/kdpr/kmrc_mrc.pth'))
+        # /USER/sungmin/MuseumChatbot/KorDPR_NLP/model/kdpr/kmrc_mrc.pth
+        
         self.model = self.model.to(self.device)
         self.tokenizer = BertTokenizerFast.from_pretrained('klue/bert-base')
         self.passage_dropout =nn.Dropout(0.1)
@@ -108,6 +116,7 @@ class inference(object):
                 question_embeddings = torch.stack([question_output[i][0] for i in range(len(question_output))]).cpu().detach().numpy().astype('float32')
 
                 distances, indices = self.index.search(question_embeddings, 100)
+                # retrieved_passages = [self.eval_dataset.passages[idx] for idx in indices[0]]
 
                 # top 100
                 for idxs in indices:
@@ -133,3 +142,40 @@ class inference(object):
                         cnt_5 += 1
 
         return correct_5/cnt_5, correct_20/cnt_20, correct_100/cnt_100
+    
+    # def retrieve_passages_for_query(self, query):
+
+
+    #     self.model.eval()
+
+    #     # 토크나이저로 입력 질문을 처리
+    #     tokenized_query = self.tokenizer(query, return_tensors='pt')
+    #     q_input_ids = tokenized_query['input_ids'].to(self.device)
+    #     q_attention_mask = tokenized_query['attention_mask'].to(self.device)
+    #     q_token_type_ids = tokenized_query['token_type_ids'].to(self.device)
+
+    #     # 모델을 사용하여 입력 질문에 대한 임베딩 생성
+    #     with torch.no_grad():
+    #         encoded_question = self.model.module.question_encoder(
+    #             input_ids=q_input_ids,
+    #             attention_mask=q_attention_mask,
+    #             token_type_ids=q_token_type_ids
+    #         )
+    #         question_output = self.question_dropout(encoded_question.last_hidden_state)
+    #         question_embedding = torch.stack([question_output[i][0] for i in range(len(question_output))]).cpu().detach().numpy().astype('float32')
+
+    #     # FAISS를 사용하여 유사한 패싯 검색
+    #     distances, indices = self.index.search(question_embedding, 5)  # 상위 5개 패싯 검색
+    #     retrieved_passages = [self.eval_dataset.passages[idx] for idx in indices[0]]
+
+    #     return retrieved_passages
+
+    
+
+        
+
+
+
+        
+
+

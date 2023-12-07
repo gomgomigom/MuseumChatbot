@@ -214,7 +214,7 @@ class train_dpr(object):
             if val_loss < self.best_val_loss:
                 self.best_val_loss = val_loss
                 self.best_model = self.model
-        torch.save(self.best_model.state_dict(), self.args.save_dirpath + self.args.load_pthpath + 'kmrc_mrc' + '.pth')
+                torch.save(self.best_model.state_dict(), self.args.save_dirpath + self.args.load_pthpath + 'kmrc_mrc' + '.pth')
 
 
 if __name__ == '__main__':
@@ -229,7 +229,7 @@ if __name__ == '__main__':
     with open(os.path.join(parsed_args.config_dir, "{}.json".format(parsed_args.config_file))) as f:
         args = AttrDict(json.load(f))
 
-    # print("Training/evaluation parameters {}".format(args))
+    print("Training/evaluation parameters {}".format(args))
     dpr_train = train_dpr(args)
     if parsed_args.mode == 'train':
         dpr_train.train()
@@ -239,3 +239,15 @@ if __name__ == '__main__':
         print("top_5", top_5)
         print("top_20", top_20)
         print("top_100", top_100)
+        
+        query = '자유학기제의 목표는?'
+        answer = inf.retrieve_passages_for_query(query)
+        for passage in answer:
+            print(passage)
+    # inf = inference(args=args, model=kdpr())
+
+    # user_query = "자유학기제의 목표는?"
+    # top_5_passage = inf.retrieve_passages_for_query(user_query)
+    # print("Retrieved Passages:")
+    # for passage in retrieved_passages:
+    #     print(passage)

@@ -93,5 +93,5 @@ eval_dataset_process = preprocess_dataset('ko_nia_normal_squad_all.json', tokeni
 train_dataset = train_dataset_process.make_dataset(1000)
 eval_dataset = eval_dataset_process.make_dataset(500)
 
-train_dataset.save_to_disk('squad_hub_nia_clue')
-eval_dataset.save_to_disk('squad_hub_nia_normal')
+train_dataset.save_to_disk('museum_train')
+eval_dataset.save_to_disk('museum_eval')
