@@ -9,7 +9,7 @@ class HuggingFaceEmbedding:
             "cuda" if torch.cuda.is_available() and use_gpu else "cpu"
         )
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.model = AutoModel.from_pretrained(model_name)
+        self.model = AutoModel.from_pretrained(model_name).to(self.device)
         print(f"====={self.device}를 사용해서 임베딩합니다=====")
 
     def get_embedding(self, prompt):
