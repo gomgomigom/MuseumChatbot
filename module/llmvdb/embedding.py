@@ -4,18 +4,26 @@ from typing import Literal
 
 
 class HuggingFaceEmbedding:
-    def __init__(self, model_name: str = "klue/bert-base"):
+    def __init__(self, model_name: str = "klue/bert-base", use_gpu: bool = True):
+        self.device = torch.device(
+            "cuda" if torch.cuda.is_available() and use_gpu else "cpu"
+        )
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        self.model = AutoModel.from_pretrained(model_name)
+        self.model = AutoModel.from_pretrained(model_name).to(self.device)
+        print(f"====={self.device}를 사용해서 임베딩합니다=====")
 
     def get_embedding(self, prompt):
+        if isinstance(prompt, str):
+            prompt = [prompt]
+
         inputs = self.tokenizer(
             prompt, padding=True, truncation=True, return_tensors="pt", max_length=512
         )
+        inputs = {k: v.to(self.device) for k, v in inputs.items()}
         with torch.no_grad():
             model_output = self.model(**inputs)
         sentence_embeddings = self.mean_pooling(model_output, inputs["attention_mask"])
-        return sentence_embeddings
+        return sentence_embeddings.cpu()
 
     @staticmethod
     def mean_pooling(model_output, attention_mask):
@@ -38,9 +46,6 @@ class DPRTextEmbedding(HuggingFaceEmbedding):
         if mode not in ["passage", "question"]:
             raise ValueError("Mode must be 'passage' or 'question'")
         super().__init__(model_name)
-        # super().__init__...은 아래 주석 두줄과 같음
-        # self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        # self.model = AutoModel.from_pretrained(model_name)
         self.mode = mode
         self.model_dict = {}
         self.load_model = torch.load(model_path, map_location=torch.device("cpu"))
