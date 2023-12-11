@@ -2,7 +2,8 @@
 
 python3.9 사용
 
-`pip install python-dotenv docarray vectordb langchain openai`
+해당 폴더로 이동 (module폴더)
+`conda create -f environment.yaml`
 
 main.py
 하단에 main함수에 자주 바꾸는 값을 넣어 변경할 수 있음
