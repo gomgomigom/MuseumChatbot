@@ -81,17 +81,21 @@ if __name__ == "__main__":
     # eval/model_performance.csv 파일이 있다면 False로, False이면 이전에 했던 평가는 저장된값을 사용함
     is_first = False
 
+    # 평가 결과 저장혹은 불러올 파일 이름
+    csv_file_path = "model_performance.csv"
+
     df = eval_model(model_paths, workspaces, is_first)
+
     if is_first:
-        df.to_csv("eval/model_performance.csv", index=False, encoding="utf-8")
+        df.to_csv(f"eval/{csv_file_path}", index=False, encoding="utf-8")
     else:
         df.to_csv(
-            "eval/model_performance.csv",
+            f"eval/{csv_file_path}",
             mode="a",
             index=False,
             header=False,
             encoding="utf-8-sig",
         )
-    df = pd.read_csv("eval/model_performance.csv")
+    df = pd.read_csv(f"eval/{csv_file_path}")
     print(df)
     make_graph(df)
