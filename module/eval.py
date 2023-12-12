@@ -66,7 +66,7 @@ if __name__ == "__main__":
         "",
         "data/museum_5epochs.pth",
         "data/merged_pn_5ep.pth",
-        "data/museum_kdpr.pth",
+        "data/museum_kdpr.pth",  # aihub_5epochs
     ]
 
     # 해당 모델로 임베딩한 index.bin이 있는 경로를 지정해줍니다.
