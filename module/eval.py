@@ -31,32 +31,67 @@ def eval_model(model_paths: list, workspaces: list, is_first: bool = False):
             verbose=True,
         )
 
-        accuracy = vdb.evaluate_model(target_model)
+        accuracy, accuracy_tit = vdb.evaluate_model(target_model)
+        for accuracy_dict in [accuracy, accuracy_tit]:
+            new_accuracy_dict = {
+                f"Top_{k}": v for k, v in accuracy_dict.items() if isinstance(k, int)
+            }
+            for k in ["model", "question_len", "criteria"]:
+                if k in accuracy_dict:
+                    new_accuracy_dict[k] = accuracy_dict[k]
+            model_performance.append(new_accuracy_dict)
 
-        accuracy["model"] = target_model
-        model_performance.append(accuracy)
     df = pd.DataFrame(model_performance)
 
     return df
 
 
-def make_graph(df: pd.DataFrame):
-    plt.figure(figsize=(12, 8))
-    top_k_labels = [label for label in df.columns if label.startswith("Top_")]
-    x_values = [int(label.split("_")[1]) for label in top_k_labels]
+class GraphMaker:
+    def __init__(self, df: pd.DataFrame):
+        self.df = df
+        self.top_k_labels = [label for label in df.columns if label.startswith("Top_")]
+        self.x_values = [int(label.split("_")[1]) for label in self.top_k_labels]
+        self.model_colors = {
+            model: color
+            for model, color in zip(
+                df["model"].unique(), plt.rcParams["axes.prop_cycle"].by_key()["color"]
+            )
+        }
 
-    for model in df["model"].unique():
-        subset = df[df["model"] == model]
-        y_values = subset[top_k_labels].iloc[0]
-        plt.plot(x_values, y_values, label=model)
+    def make_graph(self, criteria=None):
+        plt.figure(figsize=(12, 8))
 
-    plt.xlabel("Top_k")
-    plt.ylabel("Accuracy")
-    plt.title("Model-wise Top_k Accuracy")
-    plt.legend()
-    plt.xticks(x_values, top_k_labels, rotation=45)  # X축 눈금 설정
-    plt.grid(True)
-    plt.show()
+        if criteria:
+            self.plot_criteria(criteria, linestyle="solid")
+        else:
+            self.plot_criteria("ctx_id", linestyle="solid")
+            self.plot_criteria("tit_id", linestyle="dotted")
+        plt.title(
+            f"Model-wise Top_k Accuracy ({'ctx_id & tit_id ' if not criteria else criteria})"
+        )
+        self.finalize_plot()
+
+    def plot_criteria(self, criteria, linestyle):
+        for model in self.df["model"].unique():
+            subset = self.df[
+                (self.df["model"] == model) & (self.df["criteria"] == criteria)
+            ]
+            y_values = subset[self.top_k_labels].iloc[0]
+            plt.plot(
+                self.x_values,
+                y_values,
+                label=f"{model} ({criteria})",
+                linestyle=linestyle,
+                color=self.model_colors[model],
+            )
+
+    def finalize_plot(self):
+        plt.xlabel("Top_k")
+        plt.ylabel("Accuracy")
+        plt.legend()
+        plt.xticks(self.x_values, self.top_k_labels, rotation=45)
+        plt.grid(True)
+        plt.show()
 
 
 if __name__ == "__main__":
@@ -81,21 +116,23 @@ if __name__ == "__main__":
     # eval/model_performance.csv 파일이 있다면 False로, False이면 이전에 했던 평가는 저장된값을 사용함
     is_first = False
 
-    # 평가 결과 저장혹은 불러올 파일 이름
-    csv_file_path = "model_performance.csv"
-
     df = eval_model(model_paths, workspaces, is_first)
 
     if is_first:
-        df.to_csv(f"eval/{csv_file_path}", index=False, encoding="utf-8")
+        df.to_csv(f"eval/model_performance.csv", index=False, encoding="utf-8")
     else:
         df.to_csv(
-            f"eval/{csv_file_path}",
+            f"eval/model_performance.csv",
             mode="a",
             index=False,
             header=False,
-            encoding="utf-8-sig",
+            encoding="utf-8",
         )
-    df = pd.read_csv(f"eval/{csv_file_path}")
-    print(df)
-    make_graph(df)
+
+    df = pd.read_csv(f"eval/model_performance.csv")
+    print(df[df["criteria"] == "ctx_id"])
+    print(df[df["criteria"] == "tit_id"])
+    graph_maker = GraphMaker(df)
+    graph_maker.make_graph("ctx_id")
+    graph_maker.make_graph("tit_id")
+    graph_maker.make_graph()
