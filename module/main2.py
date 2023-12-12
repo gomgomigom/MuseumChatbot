@@ -115,7 +115,7 @@ if __name__ == "__main__":
 
     main(
         data_file_path="data/train.jsonl",  # 질문-문서 데이터셋 경로
-        workspace="vectordb/meseum_5epochs",  # 임베딩된 데이터가 저장되는(된) 경로
+        workspace="vectordb/museum_5epochs",  # 임베딩된 데이터가 저장되는(된) 경로
         model_path="data/museum_5epochs.pth",  # 학습된 dpr모델(.pth파일)의 경로
         is_dpr=True,  # True -> model_path 에 학습된 모델 사용 / False -> model_name 사용
         is_first=False,  # True -> data_file_path의 문서 임베딩하고 저장함
