@@ -32,7 +32,7 @@ class train_dpr(object):
         self.build_model()
         self.build_dataloader()
         self.setup_training()
-
+        self.scores = list()
 
     def build_dataloader(self):
         self.train_dataset = kdpr_dataset(self.args.train_data_dir, self.tokenizer)
@@ -211,6 +211,7 @@ class train_dpr(object):
             print('val_loss', val_loss)
             print('val_acc', val_acc)
             print('val_acc_about_top1', val1_acc)
+            self.scores.append(val_loss)
             if val_loss < self.best_val_loss:
                 self.best_val_loss = val_loss
                 self.best_model = self.model
@@ -244,6 +245,7 @@ if __name__ == '__main__':
         answer = inf.retrieve_passages_for_query(query)
         for passage in answer:
             print(passage)
+    print(dpr_train.scores)
     # inf = inference(args=args, model=kdpr())
 
     # user_query = "자유학기제의 목표는?"
