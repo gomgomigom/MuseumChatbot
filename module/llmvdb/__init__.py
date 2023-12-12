@@ -1,10 +1,11 @@
-from typing import Optional
+from typing import Optional, Literal
 from docarray import DocList
 from vectordb import InMemoryExactNNVectorDB
 from .customdataset import CustomDataset, EvalCustomDataset
 from tqdm.auto import tqdm
 from .doc import ToyDoc
 from torch.utils.data import DataLoader
+import pandas as pd
 
 
 class Llmvdb:
@@ -154,10 +155,12 @@ class Llmvdb:
             10: 0,
             20: 0,
             50: 0,
-            70: 0,
-            100: 0,
-            "question_len": question_len,
+            "model": target_model,
+            "criteria": "ctx_id",
         }
+        correct_counts_tit_id = correct_counts.copy()
+        correct_counts_tit_id["criteria"] = "tit_id"
+
         top_k_keys = sorted([k for k in correct_counts.keys() if isinstance(k, int)])
 
         for q in tqdm(question_list, desc=f"search..{target_model}"):
@@ -165,6 +168,7 @@ class Llmvdb:
                 question=q.question,
                 context_embedding=q.question_embedding,
                 ctx_id=q.ctx_id,
+                tit_id=q.tit_id,
             )
             for top_k in top_k_keys:
                 search_parameters = {"search_field": "context_embedding"}
@@ -174,18 +178,22 @@ class Llmvdb:
                     limit=top_k,
                 )
 
+                ctx_id_matched = False
                 for match in search_results[0].matches:
                     if match.ctx_id == search_query.ctx_id:
                         correct_counts[top_k] += 1
+                        correct_counts_tit_id[top_k] += 1
+                        ctx_id_matched = True
                         break
 
-        temp_correct_counts = {}
-        for top_k, count in correct_counts.items():
-            if top_k != "question_len":
-                temp_correct_counts[f"Top_{top_k}"] = count / question_len
-                print(f"Top_{top_k} Accuracy: {count/question_len:.3f}")
+                if not ctx_id_matched:
+                    for match in search_results[0].matches:
+                        if match.tit_id == search_query.tit_id:
+                            correct_counts_tit_id[top_k] += 1
+                            break
 
-        correct_counts = temp_correct_counts
-        correct_counts["question_len"] = question_len
+        for key in top_k_keys:
+            correct_counts[key] = correct_counts[key] / question_len
+            correct_counts_tit_id[key] = correct_counts_tit_id[key] / question_len
 
-        return correct_counts
+        return correct_counts, correct_counts_tit_id
