@@ -78,9 +78,9 @@ if __name__ == "__main__":
         # 질문-문서 데이터셋 경로
         data_file_path="data/train.jsonl",
         # 임베딩된 데이터가 저장되는(되어있는) 경로
-        workspace="vectordb/merged_pn_5ep",
+        workspace="vectordb/museum_5epochs",
         # 학습된 dpr모델(.pth파일)의 경로
-        model_path="data/merged_pn_5ep.pth",
+        model_path="data/museum_5epochs.pth",
         # DPR 모델 사용 여부
         is_dpr=True,
         # 처음 실행 여부
