@@ -41,7 +41,7 @@ def main(
             file_path=data_file_path,
             workspace=workspace,
             verbose=True,  # False로 설정시 터미널에 정보 출력 안됨
-            threshold=0.0,
+            threshold=0.0,  # threshold 값 조절 필요!
             top_k=5,
         )
         if is_first:
