@@ -54,4 +54,4 @@ class DPRTextEmbedding(HuggingFaceEmbedding):
                 self.model_dict[
                     key.replace(f"module.{self.mode}_encoder.", "")
                 ] = self.load_model[key]
-        self.model.load_state_dict(self.model_dict, strict=False)
+        self.model.load_state_dict(self.model_dict, strict=True)
