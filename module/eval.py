@@ -4,6 +4,8 @@ from llmvdb.embedding import HuggingFaceEmbedding, DPRTextEmbedding
 from llmvdb import Llmvdb
 import os
 import matplotlib.pyplot as plt
+from llmvdb.bm25 import CustomBM25
+from llmvdb.customdataset import EvalCustomDataset
 
 
 def eval_model(
@@ -146,7 +148,17 @@ if __name__ == "__main__":
     df = eval_model(model_paths, workspaces, model_names, is_first)
 
     df = pd.read_csv(f"eval/model_performance.csv")
-    df = df[df["model"].isin(["museum_5epochs", "museum_skt_kobert", "merged_pn_5ep"])]
+    df = df[
+        df["model"].isin(
+            [
+                "museum_5epochs",
+                "museum_skt_kobert",
+                "merged_pn_5ep",
+                "bm25_bert",
+                "bm25_space",
+            ]
+        )
+    ]
     print(df[df["criteria"] == "ctx_id"])
     print(df[df["criteria"] == "tit_id"])
 
