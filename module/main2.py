@@ -33,7 +33,7 @@ def main(
     
     # img = Image.open(user_img)
     
-    st.title("국립중앙박물관 챗봇")
+    st.title(":orange[국립중앙박물관] :blue[챗봇] :star2:")
 
     if "llm" not in st.session_state:
         stream_handler = StreamHandler(st.empty())
@@ -84,6 +84,22 @@ def main(
             st.session_state["messages"].append(
                 ChatMessage(role="assistant", content=response)
             )
+
+# 채팅 메시지의 배경을 하얀색으로 설정하는 CSS
+chat_style = """
+<style>
+.stChatMessage {
+    background-color: white !important;
+    }
+.sttitle {
+    background-color: white !important;
+}
+</style>
+"""
+
+
+# # Streamlit에 CSS 적용
+st.markdown(chat_style, unsafe_allow_html=True)
 
 # 배경 설정하기
 @st.cache_data()
