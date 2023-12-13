@@ -1,4 +1,3 @@
-import numpy as np
 import pandas as pd
 from tqdm.auto import tqdm
 from llmvdb.embedding import HuggingFaceEmbedding, DPRTextEmbedding
@@ -62,7 +61,7 @@ def eval_model(
 
 class GraphMaker:
     def __init__(self, df: pd.DataFrame):
-        # df = df.drop(columns="Top_50")
+        df = df.drop(columns=["Top_50", "Top_20"])
         self.df = df
         self.top_k_labels = [label for label in df.columns if label.startswith("Top_")]
         self.x_values = [int(label.split("_")[1]) for label in self.top_k_labels]
@@ -118,6 +117,7 @@ if __name__ == "__main__":
         "data/merged_pn_5ep.pth",
         "data/museum_kdpr.pth",  # aihub_5epochs
         "data/museum_monologg_kobert.pth",  # 5ep
+        "data/museum_skt_kobert.pth",
     ]
 
     # 해당 모델로 임베딩한 index.bin이 있는 경로를 지정해줍니다.
@@ -128,6 +128,7 @@ if __name__ == "__main__":
         "vectordb/merged_pn_5ep",
         "vectordb/aihub_5epochs",
         "vectordb/museum_monologg_kobert_5ep",
+        "vectordb/museum_skt_kobert",
     ]
 
     # 기반 모델 이름(기본: klue/bert-base)
@@ -137,6 +138,7 @@ if __name__ == "__main__":
         "klue/bert-base",
         "klue/bert-base",
         "monologg/kobert",
+        "skt/kobert-base-v1",
     ]
     # eval/model_performance.csv 파일이 있다면 False로, False이면 이전에 했던 평가는 저장된값을 사용함
     is_first = False
@@ -144,8 +146,10 @@ if __name__ == "__main__":
     df = eval_model(model_paths, workspaces, model_names, is_first)
 
     df = pd.read_csv(f"eval/model_performance.csv")
+    df = df[df["model"].isin(["museum_5epochs", "museum_skt_kobert", "merged_pn_5ep"])]
     print(df[df["criteria"] == "ctx_id"])
     print(df[df["criteria"] == "tit_id"])
+
     graph_maker = GraphMaker(df)
     graph_maker.make_graph("ctx_id")
     graph_maker.make_graph("tit_id")

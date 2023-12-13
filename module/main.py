@@ -79,15 +79,15 @@ if __name__ == "__main__":
         # 질문-문서 데이터셋 경로
         data_file_path="data/train.jsonl",
         # 임베딩된 데이터가 저장되는(되어있는) 경로
-        workspace="vectordb/museum_5epochs",
+        workspace="vectordb/museum_skt_kobert",
         # 학습된 dpr모델(.pth파일)의 경로
-        model_path="data/museum_5epochs.pth",
+        model_path="data/museum_skt_kobert.pth",
         # 기반이 되는 모델
-        model_name="klue/bert-base",
+        model_name="skt/kobert-base-v1",
         # DPR 모델 사용 여부
         is_dpr=True,
         # 처음 실행 여부
-        is_first=False,
+        is_first=True,
         # 주의 : 이 값을 True로 하는 경우 = 모델을 바꾸거나, workspace를 변경했을때 True
         # 처음 폴더를 받은 상태에서 돌려보기만 할땐 False로 둬도 됨!
     )
