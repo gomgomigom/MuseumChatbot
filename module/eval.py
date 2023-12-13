@@ -7,24 +7,29 @@ import os
 import matplotlib.pyplot as plt
 
 
-def eval_model(model_paths: list, workspaces: list, is_first: bool = False):
+def eval_model(
+    model_paths: list,
+    workspaces: list,
+    model_names: list,
+    is_first: bool = False,
+):
     if not is_first:
         if os.path.exists("eval/model_performance.csv"):
             df = pd.read_csv("eval/model_performance.csv")
             existed_models = set("vectordb/" + df["model"])
 
     model_performance = []
-    for model_path, workspace in zip(model_paths, workspaces):
+    for model_path, workspace, model_name in zip(model_paths, workspaces, model_names):
         target_model = workspace.split("/")[-1]
         if not is_first and workspace in existed_models:
             print(f"{target_model}의 평가 결과는 이미 저장되어 있으므로 넘어갑니다.")
             continue
         print(model_path, workspace)
         if model_path:
-            embedding = DPRTextEmbedding("question", model_path)
+            embedding = DPRTextEmbedding("question", model_path, model_name)
         else:
             print("====== klue/bert-base =====")
-            embedding = HuggingFaceEmbedding()
+            embedding = HuggingFaceEmbedding(model_name)
         vdb = Llmvdb(
             embedding,
             workspace=workspace,
@@ -42,12 +47,22 @@ def eval_model(model_paths: list, workspaces: list, is_first: bool = False):
             model_performance.append(new_accuracy_dict)
 
     df = pd.DataFrame(model_performance)
-
+    if is_first:
+        df.to_csv(f"eval/model_performance.csv", index=False, encoding="utf-8")
+    elif not df.empty:
+        df.to_csv(
+            f"eval/model_performance.csv",
+            mode="a",
+            index=False,
+            header=False,
+            encoding="utf-8",
+        )
     return df
 
 
 class GraphMaker:
     def __init__(self, df: pd.DataFrame):
+        # df = df.drop(columns="Top_50")
         self.df = df
         self.top_k_labels = [label for label in df.columns if label.startswith("Top_")]
         self.x_values = [int(label.split("_")[1]) for label in self.top_k_labels]
@@ -102,6 +117,7 @@ if __name__ == "__main__":
         "data/museum_5epochs.pth",
         "data/merged_pn_5ep.pth",
         "data/museum_kdpr.pth",  # aihub_5epochs
+        "data/museum_monologg_kobert.pth",  # 5ep
     ]
 
     # 해당 모델로 임베딩한 index.bin이 있는 경로를 지정해줍니다.
@@ -111,23 +127,21 @@ if __name__ == "__main__":
         "vectordb/museum_5epochs",
         "vectordb/merged_pn_5ep",
         "vectordb/aihub_5epochs",
+        "vectordb/museum_monologg_kobert_5ep",
     ]
 
+    # 기반 모델 이름(기본: klue/bert-base)
+    model_names = [
+        "klue/bert-base",
+        "klue/bert-base",
+        "klue/bert-base",
+        "klue/bert-base",
+        "monologg/kobert",
+    ]
     # eval/model_performance.csv 파일이 있다면 False로, False이면 이전에 했던 평가는 저장된값을 사용함
     is_first = False
 
-    df = eval_model(model_paths, workspaces, is_first)
-
-    if is_first:
-        df.to_csv(f"eval/model_performance.csv", index=False, encoding="utf-8")
-    else:
-        df.to_csv(
-            f"eval/model_performance.csv",
-            mode="a",
-            index=False,
-            header=False,
-            encoding="utf-8",
-        )
+    df = eval_model(model_paths, workspaces, model_names, is_first)
 
     df = pd.read_csv(f"eval/model_performance.csv")
     print(df[df["criteria"] == "ctx_id"])
