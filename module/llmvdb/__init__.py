@@ -6,6 +6,8 @@ from tqdm.auto import tqdm
 from .doc import ToyDoc
 from torch.utils.data import DataLoader
 import pandas as pd
+from rank_bm25 import BM25Okapi
+import numpy as np
 
 
 class Llmvdb:

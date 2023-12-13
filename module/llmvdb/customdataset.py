@@ -32,6 +32,19 @@ class CustomDataset(Dataset):
             "tit_id": data.get("tit_id"),
         }
 
+    def get_all_data(self):
+        all_data = []
+        for data in self.documents_data:
+            text = f'{data.get("title", "")}\n{data.get("context", "")}'
+            item = {
+                "text": text,
+                "question": data.get("question", ""),
+                "ctx_id": data.get("ctx_id"),
+                "tit_id": data.get("tit_id"),
+            }
+            all_data.append(item)
+        return all_data
+
 
 class EvalCustomDataset(CustomDataset):
     def __init__(self, file_path):
