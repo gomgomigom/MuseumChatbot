@@ -23,16 +23,17 @@ def main(
     data_file_path: str,
     workspace: str,
     model_path: str,
+    model_name: str = "klue/bert-base",
     is_dpr: bool = False,
     is_first: bool = False,
 ):
     if "llm" not in st.session_state:
         stream_handler = StreamHandler(st.empty())
         if is_dpr:
-            embedding = DPRTextEmbedding("passage", model_path)
-            question_embedding = DPRTextEmbedding("question", model_path)
+            embedding = DPRTextEmbedding("passage", model_path, model_name)
+            question_embedding = DPRTextEmbedding("question", model_path, model_name)
         else:
-            embedding = HuggingFaceEmbedding()
+            embedding = HuggingFaceEmbedding(model_name)
 
         llm = LangChain(callbacks=[stream_handler])
         st.session_state["llm"] = Llmvdb(
@@ -81,6 +82,8 @@ if __name__ == "__main__":
         workspace="vectordb/museum_5epochs",
         # 학습된 dpr모델(.pth파일)의 경로
         model_path="data/museum_5epochs.pth",
+        # 기반이 되는 모델
+        model_name="klue/bert-base",
         # DPR 모델 사용 여부
         is_dpr=True,
         # 처음 실행 여부
