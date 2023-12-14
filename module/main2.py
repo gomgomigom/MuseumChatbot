@@ -27,6 +27,7 @@ def main(
     model_path: str,
     is_dpr: bool = False,
     is_first: bool = False,
+    model_name: str = "klue/bert-base",
     assistant_img = None,
     user_img = None
 ):
@@ -37,10 +38,10 @@ def main(
     if "llm" not in st.session_state:
         stream_handler = StreamHandler(st.empty())
         if is_dpr:
-            embedding = DPRTextEmbedding("passage", model_path)
-            question_embedding = DPRTextEmbedding("question", model_path)
+            embedding = DPRTextEmbedding("passage", model_path, model_name)
+            question_embedding = DPRTextEmbedding("question", model_path, model_name)
         else:
-            embedding = HuggingFaceEmbedding()
+            embedding = HuggingFaceEmbedding(model_name)
 
         llm = LangChain(callbacks=[stream_handler])
         st.session_state["llm"] = Llmvdb(
