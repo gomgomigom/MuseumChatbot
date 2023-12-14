@@ -27,21 +27,21 @@ def main(
     model_path: str,
     is_dpr: bool = False,
     is_first: bool = False,
+    model_name: str = "klue/bert-base",
     assistant_img = None,
     user_img = None
 ):
     
-    # img = Image.open(user_img)
     
     st.title(":orange[국립중앙박물관] :blue[챗봇] :star2:")
 
     if "llm" not in st.session_state:
         stream_handler = StreamHandler(st.empty())
         if is_dpr:
-            embedding = DPRTextEmbedding("passage", model_path)
-            question_embedding = DPRTextEmbedding("question", model_path)
+            embedding = DPRTextEmbedding("passage", model_path, model_name)
+            question_embedding = DPRTextEmbedding("question", model_path, model_name)
         else:
-            embedding = HuggingFaceEmbedding()
+            embedding = HuggingFaceEmbedding(model_name)
 
         llm = LangChain(callbacks=[stream_handler])
         st.session_state["llm"] = Llmvdb(
@@ -50,8 +50,8 @@ def main(
             file_path=data_file_path,
             workspace=workspace,
             verbose=True,  # False로 설정시 터미널에 정보 출력 안됨
-            threshold=0.1,
-            top_k=3,
+            threshold=0.0, # threshold 값 조절 필요!
+            top_k=5,
         )
         if is_first:
             st.session_state["llm"].initialize_db()  # vectordb저장, 처음에 한번만 실행
@@ -130,13 +130,23 @@ if __name__ == "__main__":
 
 
     main(
-        data_file_path="data/train.jsonl",  # 질문-문서 데이터셋 경로
-        workspace="vectordb/museum_5epochs",  # 임베딩된 데이터가 저장되는(된) 경로
-        model_path="data/museum_5epochs.pth",  # 학습된 dpr모델(.pth파일)의 경로
+        # 질문-문서 데이터셋 경로
+        data_file_path="data/train.jsonl",
+        # 임베딩된 데이터가 저장되는(된) 경로
+        workspace="vectordb/museum_skt_kobert",
+        # 학습된 dpr모델(.pth파일)의 경로
+        model_path="data/museum_skt_kobert.pth",
+        # 기반이 되는 모델
+        model_name = "skt/kobert-base-v1"
+        # DPR 모델 사용 여부
         is_dpr=True,  # True -> model_path 에 학습된 모델 사용 / False -> model_name 사용
+        # 처음 실행 여부
         is_first=False,  # True -> data_file_path의 문서 임베딩하고 저장함
-        # False -> 저장된것 사용
-        # 저장된것 사용할땐 False로 하고 workspace 경로 잘 지정해주면 됨
+        # False  -> 저장된것 사용
+        # 주의 : 이 값을 True로 하는 경우 = 모델을 바꾸거나, workspace를 변경했을때 True
+        #       저장된것 사용할땐 False로 하고 workspace 경로 잘 지정해주면 됨
+        #       처음 폴더를 받은 상태에서 돌려보기만 할땐 False로 둬도 됨!
+        
         # 주의 : is_first는 반드시 처음에만 True로 해야함, 데이터 덮어쓰기가 아닌 추가로 쌓아버림
         assistant_img=ai_path,
         user_img=user_path
