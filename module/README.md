@@ -4,6 +4,7 @@ python3.9 사용
 
 해당 폴더로 이동 (module폴더)
 `conda create -f environment.yaml`
+or
 `conda env create -f environment.yaml`
 
 main.py
