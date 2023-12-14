@@ -6,6 +6,7 @@ import os
 import matplotlib.pyplot as plt
 from llmvdb.bm25 import CustomBM25
 from llmvdb.customdataset import EvalCustomDataset
+from tabulate import tabulate
 
 
 def eval_model(
@@ -63,7 +64,7 @@ def eval_model(
 
 class GraphMaker:
     def __init__(self, df: pd.DataFrame):
-        df = df.drop(columns=["Top_50", "Top_20"])
+        # df = df.drop(columns=["Top_50", "Top_20"])
         self.df = df
         self.top_k_labels = [label for label in df.columns if label.startswith("Top_")]
         self.x_values = [int(label.split("_")[1]) for label in self.top_k_labels]
@@ -112,14 +113,16 @@ class GraphMaker:
 
 if __name__ == "__main__":
     # 평가할 모델의 경로를 순서대로 적어줍니다 (workspace와 순서가 같아야함)
-    # ""은 klue/bert-base 모델을 적용합니다 (dpr X)
+    # ""은 model_name모델을 적용합니다 (dpr X)
     model_paths = [
-        "",
+        "",  # klue/bert-base
         "data/museum_5epochs.pth",
         "data/merged_pn_5ep.pth",
         "data/museum_kdpr.pth",  # aihub_5epochs
         "data/museum_monologg_kobert.pth",  # 5ep
         "data/museum_skt_kobert.pth",
+        "data/museum_skt_kobert_10ep.pth",
+        "",  # skt
     ]
 
     # 해당 모델로 임베딩한 index.bin이 있는 경로를 지정해줍니다.
@@ -130,7 +133,9 @@ if __name__ == "__main__":
         "vectordb/merged_pn_5ep",
         "vectordb/aihub_5epochs",
         "vectordb/museum_monologg_kobert_5ep",
-        "vectordb/museum_skt_kobert",
+        "vectordb/museum_skt_kobert_5ep",
+        "vectordb/museum_skt_kobert_10ep",
+        "vectordb/skt_kobert",
     ]
 
     # 기반 모델 이름(기본: klue/bert-base)
@@ -140,6 +145,8 @@ if __name__ == "__main__":
         "klue/bert-base",
         "klue/bert-base",
         "monologg/kobert",
+        "skt/kobert-base-v1",
+        "skt/kobert-base-v1",
         "skt/kobert-base-v1",
     ]
     # eval/model_performance.csv 파일이 있다면 False로, False이면 이전에 했던 평가는 저장된값을 사용함
@@ -152,15 +159,24 @@ if __name__ == "__main__":
         df["model"].isin(
             [
                 "museum_5epochs",
-                "museum_skt_kobert",
+                # "museum_skt_kobert",
+                "aihub_5epochs",
                 "merged_pn_5ep",
-                "bm25_bert",
-                "bm25_space",
+                # "bm25_bert",
+                # "bm25_space",
+                # "bert-base",
+                # "skt_kobert",
+                # "museum_skt_kobert_5ep",
+                # "museum_skt_kobert_10ep",
             ]
         )
     ]
-    print(df[df["criteria"] == "ctx_id"])
-    print(df[df["criteria"] == "tit_id"])
+    df = df[
+        ["model", "criteria", "Top_1", "Top_2", "Top_3", "Top_5", "Top_7", "Top_10"]
+    ]
+
+    print(tabulate(df[df["criteria"] == "ctx_id"], headers="keys", tablefmt="grid"))
+    print(tabulate(df[df["criteria"] == "tit_id"], headers="keys", tablefmt="grid"))
 
     graph_maker = GraphMaker(df)
     graph_maker.make_graph("ctx_id")
