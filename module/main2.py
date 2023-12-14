@@ -125,19 +125,19 @@ set_png_as_page_bg('../image/BGP_2.png')
 
 
 if __name__ == "__main__":
-    ai_path = "../image/AI_pic.png"
-    user_path = "../image/user_cheunsik.jpg"
+    ai_path = "../image/AI_pic.png" # image
+    user_path = "../image/user_cheunsik.png"
 
 
     main(
         # 질문-문서 데이터셋 경로
         data_file_path="data/train.jsonl",
         # 임베딩된 데이터가 저장되는(된) 경로
-        workspace="vectordb/museum_skt_kobert",
+        workspace="vectordb/museum_skt_kobert_10ep",
         # 학습된 dpr모델(.pth파일)의 경로
-        model_path="data/museum_skt_kobert.pth",
+        model_path="data/museum_skt_kobert_10ep.pth",
         # 기반이 되는 모델
-        model_name = "skt/kobert-base-v1"
+        model_name = "skt/kobert-base-v1",
         # DPR 모델 사용 여부
         is_dpr=True,  # True -> model_path 에 학습된 모델 사용 / False -> model_name 사용
         # 처음 실행 여부
