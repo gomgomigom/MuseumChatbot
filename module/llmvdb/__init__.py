@@ -6,8 +6,8 @@ from tqdm.auto import tqdm
 from .doc import ToyDoc
 from torch.utils.data import DataLoader
 import pandas as pd
-from rank_bm25 import BM25Okapi
 import numpy as np
+from .bm25 import CustomBM25
 
 
 class Llmvdb:
@@ -20,6 +20,7 @@ class Llmvdb:
         workspace: Optional[str] = None,
         threshold: float = 0.7,
         top_k: int = 3,
+        bm25: Optional[Literal["bert", "space"]] = None,
     ):
         self.embedding = embedding
         self.llm = llm
@@ -28,7 +29,10 @@ class Llmvdb:
         self.file_path = file_path
         self.threshold = threshold
         self.top_k = top_k
-
+        self.bm25 = None
+        if bm25:
+            self.bm25 = CustomBM25(tokenizer=bm25)
+            self.bm25_tok = bm25
         self.db = InMemoryExactNNVectorDB[ToyDoc](workspace=self.workspace)
 
     def custom_collate_fn(self, batch):
@@ -75,44 +79,61 @@ class Llmvdb:
         self.db.persist()
 
     def retrieve_document(self, prompt):
-        query = ToyDoc(
-            text=prompt, context_embedding=self.embedding.get_embedding(prompt)
-        )
-        search_parameters = {"search_field": "context_embedding"}
-        results = self.db.search(
-            inputs=DocList[ToyDoc]([query]),
-            parameters=search_parameters,
-            limit=self.top_k,
-        )
-
         input_document = ""
-        over_threshold_indices = [
-            idx for idx, value in enumerate(results[0].scores) if value > self.threshold
-        ]
+        if self.bm25:
+            if self.verbose:
+                print(f"=====bm25_{self.bm25_tok}를 사용하여 문서를 {self.top_k}개 검색합니다=====")
+            result = self.bm25.get_top_n(prompt, self.top_k)
+            for i, doc in enumerate(result):
+                input_document += "#문서" + str(i) + "\n" + doc + "\n"
+        else:
+            query = ToyDoc(
+                text=prompt, context_embedding=self.embedding.get_embedding(prompt)
+            )
+            search_parameters = {"search_field": "context_embedding"}
+            results = self.db.search(
+                inputs=DocList[ToyDoc]([query]),
+                parameters=search_parameters,
+                limit=self.top_k,
+            )
 
-        if self.verbose:
-            # print(results[0].matches[0])
-            # print(results[0].matches.ctx_id)
-            print(results[0].text, results[0].scores)
-            print(f"threshold를 넘는 index : {over_threshold_indices}")
+            over_threshold_indices = [
+                idx
+                for idx, value in enumerate(results[0].scores)
+                if value > self.threshold
+            ]
 
-            # 만약 threshold 0.8을 넘는게 있고 그 개수가 k개보다 적다면 전부 retrieve
-        if 1 <= len(over_threshold_indices) < self.top_k:
-            for index in over_threshold_indices:  # top-k (k=3)
-                input_document += (
-                    "#문서" + str(index) + "\n" + results[0].matches[index].text + "\n"
-                )
+            if self.verbose:
+                # print(results[0].matches[0])
+                # print(results[0].matches.ctx_id)
+                print(results[0].text, results[0].scores)
+                print(f"threshold를 넘는 index : {over_threshold_indices}")
 
-        # 만약 threshold 0.8을 넘는게 있고 그 개수가 k개보다 많다면 top-k만 retrieve
-        elif len(over_threshold_indices) >= self.top_k:
-            for index in range(self.top_k):  # top-k (k=3)
-                input_document += (
-                    "#문서" + str(index) + "\n" + results[0].matches[index].text + "\n"
-                )
+                # 만약 threshold 0.8을 넘는게 있고 그 개수가 k개보다 적다면 전부 retrieve
+            if 1 <= len(over_threshold_indices) < self.top_k:
+                for index in over_threshold_indices:  # top-k (k=3)
+                    input_document += (
+                        "#문서"
+                        + str(index)
+                        + "\n"
+                        + results[0].matches[index].text
+                        + "\n"
+                    )
 
-        # 만약 threshold 0.8을 넘는게 없다면 top-1만
-        elif len(over_threshold_indices) == 0:
-            input_document += "#문서\n" + results[0].matches[0].text + "\n"
+            # 만약 threshold 0.8을 넘는게 있고 그 개수가 k개보다 많다면 top-k만 retrieve
+            elif len(over_threshold_indices) >= self.top_k:
+                for index in range(self.top_k):  # top-k (k=3)
+                    input_document += (
+                        "#문서"
+                        + str(index)
+                        + "\n"
+                        + results[0].matches[index].text
+                        + "\n"
+                    )
+
+            # 만약 threshold 0.8을 넘는게 없다면 top-1만
+            elif len(over_threshold_indices) == 0:
+                input_document += "#문서\n" + results[0].matches[0].text + "\n"
 
         if self.verbose:
             print("================아래 문서를 참고합니다================")

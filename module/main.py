@@ -7,6 +7,7 @@ from llmvdb.langchain import LangChain
 import streamlit as st
 from llmvdb import Llmvdb
 from langchain.schema import ChatMessage
+from typing import Optional, Literal
 
 
 class StreamHandler(BaseCallbackHandler):
@@ -23,9 +24,10 @@ def main(
     data_file_path: str,
     workspace: str,
     model_path: str,
-    model_name: str = "klue/bert-base",
+    model_name: Literal["klue/bert-base", "skt/kobert-base-v1"] = "klue/bert-base",
     is_dpr: bool = False,
     is_first: bool = False,
+    bm25_tokenizer: Optional[Literal["bert", "space"]] = None,
 ):
     if "llm" not in st.session_state:
         stream_handler = StreamHandler(st.empty())
@@ -44,6 +46,7 @@ def main(
             verbose=True,  # False로 설정시 터미널에 정보 출력 안됨
             threshold=0.0,  # threshold 값 조절 필요!
             top_k=5,
+            bm25=bm25_tokenizer,
         )
         if is_first:
             st.session_state["llm"].initialize_db()  # vectordb저장, 처음에 한번만 실행
@@ -90,6 +93,9 @@ if __name__ == "__main__":
         is_first=False,
         # 주의 : 이 값을 True로 하는 경우 = 모델을 바꾸거나, workspace를 변경했을때 True
         # 처음 폴더를 받은 상태에서 돌려보기만 할땐 False로 둬도 됨!
+        #
+        # 'bert' 또는 'space' 값을 주면 무조건 bm25로 검색하니 주의!
+        bm25_tokenizer="",
     )
 
 
