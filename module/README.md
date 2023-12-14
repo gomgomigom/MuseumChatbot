@@ -12,6 +12,8 @@ main.py
 `streamlit run main.py`
 을 통해서 실행
 
+배경화면과 챗봇이미지가 변경된 버전을 사용하려면 main2.py 실행하면 됨
+
 eval.py의 main함수 인자를 조절한뒤 `python eval.py`로 평가 가능
 
 ---
