@@ -158,34 +158,43 @@ if __name__ == "__main__":
     df = df[
         df["model"].isin(
             [
-                "museum_bert-base-5ep",
+                # "museum_bert-base-5ep",
                 # "museum_skt_kobert",
                 # "aihub_5epochs",
                 # "merged_pn_5ep",
                 # "bm25_bert",
-                # "bm25_space",
+                "bm25_space",
                 # "museum_monologg_kobert_5ep",
-                "bert-base",
+                # "bert-base",
                 "skt_kobert",
-                "museum_skt_kobert_5ep",
-                # "museum_skt_kobert_10ep",
+                # "museum_skt_kobert_5ep",
+                "museum_skt_kobert_10ep",
             ]
         )
     ]
     df = df[
         ["model", "criteria", "Top_1", "Top_2", "Top_3", "Top_5", "Top_7", "Top_10"]
     ]
+    df_cols = [
+        "model",
+        "criteria",
+        "Top_1",
+        "Top_2",
+        "Top_3",
+        "Top_5",
+        "Top_7",
+        "Top_10",
+    ]
     df_ctx_id = df[df["criteria"] == "ctx_id"]
-    df_ctx_id = df_ctx_id[
-        ["model", "Top_1", "Top_2", "Top_3", "Top_5", "Top_7", "Top_10"]
-    ]
+    df_ctx_id = df_ctx_id[df_cols]
     df_tit_id = df[df["criteria"] == "tit_id"]
-    df_tit_id = df_tit_id[
-        ["model", "Top_1", "Top_2", "Top_3", "Top_5", "Top_7", "Top_10"]
-    ]
+    df_tit_id = df_tit_id[df_cols]
     print(tabulate(df_ctx_id, headers="keys", tablefmt="grid", showindex=False))
     print()
     print(tabulate(df_tit_id, headers="keys", tablefmt="grid", showindex=False))
+    print()
+    print(tabulate(df, headers="keys", tablefmt="grid", showindex=False))
+    print()
 
     graph_maker = GraphMaker(df)
     graph_maker.make_graph("ctx_id")
