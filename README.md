@@ -1,3 +1,1 @@
 # MuseumChatbot
-
-야호!
