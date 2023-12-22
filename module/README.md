@@ -10,6 +10,9 @@ or
 main.py
 하단에 main함수에 자주 바꾸는 값을 넣어 변경할 수 있음
 
+main2.py
+스트림릿 이미지 변경된 버전
+
 이후
 `streamlit run main.py`
 을 통해서 실행
