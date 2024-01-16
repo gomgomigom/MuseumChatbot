@@ -11,7 +11,7 @@
 
 ### 프로젝트 개요
 
-- 도메인 특화 챗봇 만들기 (RAG를 사용 그리고 Retriever로 DPR을 사용)
+- Hallucination이 없는 도메인 특화 챗봇 만들기 (RAG를 사용 그리고 Retriever로 DPR을 사용)
 
 ### 프로젝트 배경 
 
