@@ -32,7 +32,7 @@
 | 주성민 |    DPR 모델 학습     |
 | 박상민 |     깃허브 관리, DPR모델 학습     |
 | 이성준 |  모듈 개발, DPR모델 학습, UI 개발   |
-| 최우성 |  평가모듈 개발, 모듈 개발  |
+| 최우성 |  평가모듈 개발, 모듈 개발, 학습된 모델 적용  |
 | 최효정 |  데이터 수집, 전처리  |
 
 ### 프로젝트 진행 과정
@@ -48,8 +48,11 @@
 <img src="image/ShootingStar_35.jpg" alt="ShootingStar_38" width="600">
 
 
-### 모델별 성능 지표
+### 평가 방법
+- 생성한 질문-문서 쌍 12000개중 20%를 따로 테스트셋으로 떼어 두고 Top_k개의 결과에 올바른 문서를 가져온 비율을 측정함
+  
 
+### 모델별 성능 지표
 > 비교 그래프 이미지
 <img src="image/ShootingStar_38.jpg" alt="ShootingStar_38" width="600">
 <img src="image/ShootingStar_39.jpg" alt="ShootingStar_38" width="600">
